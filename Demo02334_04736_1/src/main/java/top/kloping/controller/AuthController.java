@@ -60,7 +60,13 @@ public class AuthController {
                 cookie.setMaxAge(Math.toIntExact(exp));
                 cookie.setPath("/");
                 response.addCookie(cookie);
-                return "redirect:/book";
+
+                // 判断用户权限并跳转到相应页面
+                if ("ADMIN".equals(user.getRole())) {
+                    return "redirect:/admin";
+                } else {
+                    return "redirect:/book";
+                }
             } catch (AuthenticationException e) {
                 response.setStatus(400);
                 return "redirect:/login?error";

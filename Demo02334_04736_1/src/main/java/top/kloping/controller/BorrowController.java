@@ -121,9 +121,20 @@ public class BorrowController {
             return ResponseEntity.notFound().build();
         }
 
-        List<BorrowRecord> borrowRecords = borrowRecordService.lambdaQuery()
-                .eq(BorrowRecord::getUserId, user.getId())
-                .list();
+        List<BorrowRecord> borrowRecords;
+        if ("ADMIN".equals(user.getRole())) {
+            // 如果是管理员，返回所有记录
+            borrowRecords = borrowRecordService.list();
+            for (BorrowRecord record : borrowRecords) {
+                User recordUser = userService.getById(record.getUserId());
+                record.setUserName(recordUser.getUsername());
+            }
+        } else {
+            // 普通用户返回自己的记录
+            borrowRecords = borrowRecordService.lambdaQuery()
+                    .eq(BorrowRecord::getUserId, user.getId())
+                    .list();
+        }
 
         return ResponseEntity.ok(borrowRecords);
     }

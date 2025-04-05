@@ -57,18 +57,25 @@
             font-size: 16px;
             margin-bottom: 20px;
         }
+        .container {
+            max-width: 800px; /* 调整最大宽度 */
+            margin: 0 auto;
+            padding: 0 20px; /* 增加内边距 */
+        }
     </style>
 </head>
 <body>
-    <h1>图书列表</h1>
-    <h5>TIPS: 每逾期1天，罚款1元。请按时归还图书，避免产生额外费用。</h5>
-    <div id="user-card-info">
-        <!-- 用户借阅证信息将动态插入此处 -->
-    </div>
-    <button class="manage-button" onclick="window.location.href='/bookm'">管理我的图书</button>
-    <button class="manage-button" onclick="window.location.href='/borrow-records'">查看借阅记录</button>
-    <div id="book-list">
-        <!-- 图书条目将动态插入此处 -->
+    <div class="container">
+        <h1>图书列表</h1>
+        <h5>TIPS: 每逾期1天，罚款1元。请按时归还图书，避免产生额外费用。</h5>
+        <div id="user-card-info">
+            <!-- 用户借阅证信息将动态插入此处 -->
+        </div>
+        <button class="manage-button" onclick="window.location.href='/bookm'">管理我的图书</button>
+        <button class="manage-button" onclick="window.location.href='/borrow-records'">查看借阅记录</button>
+        <div id="book-list">
+            <!-- 图书条目将动态插入此处 -->
+        </div>
     </div>
 
     <script>

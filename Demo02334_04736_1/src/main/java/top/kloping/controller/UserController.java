@@ -14,15 +14,38 @@ import top.kloping.entity.Card;
 import top.kloping.service.IUserService;
 import top.kloping.service.ICardService;
 
+import java.util.ArrayList;
+import java.util.List;
+
 @RestController
 @RequestMapping("/api/user")
 public class UserController {
-
     @Autowired
     private IUserService userService;
-
     @Autowired
     private ICardService cardService;
+
+    @GetMapping("/permissions")
+    @PreAuthorize("isAuthenticated()")
+    public ResponseEntity<List<String>> getMyPermissions(@AuthenticationPrincipal UserDetails details) {
+        User user = userService.findByUsername(details.getUsername());
+        if (user == null) {
+            return ResponseEntity.notFound().build();
+        }
+        List<String> permissions = new ArrayList<>();
+        permissions.add(user.getRole());
+        return ResponseEntity.ok(permissions);
+    }
+
+    @GetMapping("/isAdmin")
+    @PreAuthorize("isAuthenticated()")
+    public ResponseEntity<Boolean> isAdmin(@AuthenticationPrincipal UserDetails details) {
+        User user = userService.findByUsername(details.getUsername());
+        if (user == null) {
+            return ResponseEntity.notFound().build();
+        }
+        return ResponseEntity.ok("ADMIN".equals(user.getRole()));
+    }
 
     @GetMapping("/card")
     @PreAuthorize("hasAnyAuthority('USER','ADMIN')")
@@ -37,5 +60,16 @@ public class UserController {
     public ResponseEntity<Card> getCardByBookId(@PathVariable Integer bookId) {
         Card card = cardService.lambdaQuery().eq(Card::getBookId, bookId).one();
         return ResponseEntity.ok(card);
+    }
+
+    @GetMapping("/nickname/{userId}")
+    @PreAuthorize("hasAnyAuthority('USER','ADMIN')")
+    public ResponseEntity<String> getNicknameByUserId(@PathVariable Integer userId) {
+        User user = userService.getById(userId);
+        if (user != null) {
+            return ResponseEntity.ok(user.getUsername());
+        } else {
+            return ResponseEntity.notFound().build();
+        }
     }
 }

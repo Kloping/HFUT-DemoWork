@@ -1,0 +1,293 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Admin Page</title>
+    <style>
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            margin: 20px;
+            color: #333;
+            background-color: #f5f5f5;
+        }
+        h1 {
+            color: #444;
+            font-size: 24px;
+            margin-bottom: 20px;
+            text-align: center; /* 居中显示 */
+        }
+        .book-item, .record-item {
+            border: 1px solid #ddd;
+            padding: 15px;
+            margin-bottom: 10px;
+            border-radius: 4px;
+            background-color: #fff;
+            box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+        }
+        .book-item h3, .record-item h3 {
+            margin: 0 0 10px 0;
+            font-size: 18px;
+            color: #222;
+        }
+        .book-item p, .record-item p {
+            margin: 5px 0;
+            font-size: 14px;
+            color: #666;
+        }
+        .book-item button.update-button {
+            background-color: #007bff; /* 蓝色样式 */
+            color: white;
+            border: none;
+            padding: 8px 16px;
+            border-radius: 4px;
+            cursor: pointer;
+            font-size: 14px;
+        }
+        .book-item button.delete-button {
+            background-color: #e53935; /* 红色样式 */
+            color: white;
+            border: none;
+            padding: 8px 16px;
+            border-radius: 4px;
+            cursor: pointer;
+            font-size: 14px;
+        }
+        .record-item.not-returned {
+            background-color: #ffebee; /* 未归还的背景色为红色 */
+        }
+        .record-item.returned {
+            background-color: #e8f5e9; /* 已归还的背景色为绿色 */
+        }
+        .container {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 20px;
+            max-width: 1200px;
+            margin: 0 auto;
+        }
+        .book-list-section, .record-list-section {
+            background-color: #fff;
+            padding: 20px;
+            border-radius: 4px;
+            box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+            max-height: 600px; /* 设置最大高度 */
+            overflow-y: auto; /* 启用垂直滚动 */
+        }
+        .manage-button {
+            background-color: #28a745;
+            color: white;
+            border: none;
+            padding: 10px 20px;
+            border-radius: 4px;
+            cursor: pointer;
+            font-size: 16px;
+            margin-bottom: 20px;
+        }
+        /* 新增悬浮窗样式 */
+        .modal {
+            display: none;
+            position: fixed;
+            z-index: 1;
+            left: 0;
+            top: 0;
+            width: 100%;
+            height: 100%;
+            overflow: auto;
+            background-color: rgba(0, 0, 0, 0.4);
+        }
+        .modal-content {
+            background-color: #fff;
+            margin: 10% auto;
+            padding: 20px;
+            border-radius: 4px;
+            box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+            max-width: 400px;
+        }
+        .close {
+            color: #aaa;
+            float: right;
+            font-size: 28px;
+            font-weight: bold;
+        }
+        .close:hover,
+        .close:focus {
+            color: black;
+            text-decoration: none;
+            cursor: pointer;
+        }
+    </style>
+</head>
+<body>
+    <h1>管理员页面</h1>
+
+    <!-- 悬浮窗 -->
+    <div id="updateModal" class="modal">
+        <div class="modal-content">
+            <span class="close" onclick="closeModal()">&times;</span>
+            <h2>修改图书信息</h2>
+            <form id="update-book-form">
+                <div class="form-group">
+                    <label for="update-title">书名:</label>
+                    <input type="text" id="update-title" name="title" required style="width: 100%; padding: 8px; margin-bottom: 10px;">
+                </div>
+                <div class="form-group">
+                    <label for="update-author">作者:</label>
+                    <input type="text" id="update-author" name="author" required style="width: 100%; padding: 8px; margin-bottom: 10px;">
+                </div>
+                <div class="form-group">
+                    <label for="update-isbn">ISBN:</label>
+                    <input type="text" id="update-isbn" name="isbn" required style="width: 100%; padding: 8px; margin-bottom: 10px;">
+                </div>
+                <div class="form-group">
+                    <label for="update-category">类别:</label>
+                    <input type="text" id="update-category" name="category" required style="width: 100%; padding: 8px; margin-bottom: 10px;">
+                </div>
+                <button type="submit" class="update-button" style="width: 100%; padding: 10px;">提交修改</button>
+            </form>
+        </div>
+    </div>
+    <br>
+    <div class="container">
+        <div class="book-list-section">
+            <h2>所有图书</h2>
+            <div id="book-list">
+                <!-- 图书条目将动态插入此处 -->
+            </div>
+        </div>
+        <div class="record-list-section">
+            <h2>所有借阅记录</h2>
+            <button id="fetch-records-button" class="manage-button">获取借阅记录</button>
+            <div id="record-list">
+                <!-- 借阅记录将动态插入此处 -->
+            </div>
+        </div>
+
+    </div>
+
+    <script>
+        async function fetchAllBooks() {
+            const response = await fetch('/api/book/all');
+            if (response.ok) {
+                const books = await response.json();
+                const bookList = document.getElementById('book-list');
+                bookList.innerHTML = '';
+                for (const book of books) {
+                    const bookItem = document.createElement('div');
+                    bookItem.className = 'book-item';
+                    bookItem.innerHTML = `
+                        <h3>${book.title}</h3>
+                        <p>作者: ${book.author}</p>
+                        <p>ISBN: ${book.isbn}</p>
+                        <p>类别: ${book.category}</p>
+                        <p>发布者ID: ${book.publisherId}</p>
+                        <p>发布者昵称: ${book.publisherName}</p>
+                        <p>状态: ${book.status === 1 ? '已被借阅' : '可借阅'}</p>
+                        <button class="update-button" onclick="showUpdateForm(${book.id}, '${book.title}', '${book.author}', '${book.isbn}', '${book.category}')">修改</button>
+                        <button class="delete-button" onclick="deleteBook(${book.id})">删除</button>
+                    `;
+                    bookList.appendChild(bookItem);
+                }
+            } else {
+                alert('获取图书列表失败。');
+            }
+        }
+
+        // 打开悬浮窗
+        function showUpdateForm(bookId, title, author, isbn, category) {
+            const modal = document.getElementById('updateModal');
+            modal.style.display = 'block';
+            document.getElementById('update-title').value = title;
+            document.getElementById('update-author').value = author;
+            document.getElementById('update-isbn').value = isbn;
+            document.getElementById('update-category').value = category;
+
+            document.getElementById('update-book-form').onsubmit = async (event) => {
+                event.preventDefault();
+                const bookData = {
+                    title: document.getElementById('update-title').value,
+                    author: document.getElementById('update-author').value,
+                    isbn: document.getElementById('update-isbn').value,
+                    category: document.getElementById('update-category').value
+                };
+
+                const response = await fetch(`/api/book/${bookId}`, {
+                    method: 'PUT',
+                    headers: {
+                        'Content-Type': 'application/json'
+                    },
+                    body: JSON.stringify(bookData)
+                });
+
+                if (response.ok) {
+                    alert('图书信息更新成功！');
+                    fetchAllBooks();
+                    closeModal();
+                } else {
+                    alert('更新图书信息失败。');
+                }
+            };
+        }
+
+        // 关闭悬浮窗
+        function closeModal() {
+            const modal = document.getElementById('updateModal');
+            modal.style.display = 'none';
+        }
+
+        // 点击模态框外部关闭模态框
+        window.onclick = function(event) {
+            const modal = document.getElementById('updateModal');
+            if (event.target == modal) {
+                closeModal();
+            }
+        }
+
+        async function deleteBook(bookId) {
+            const response = await fetch(`/api/book/${bookId}`, {
+                method: 'DELETE'
+            });
+
+            if (response.ok) {
+                alert('图书删除成功！');
+                fetchAllBooks();
+            } else {
+                alert('删除图书失败。');
+            }
+        }
+
+        async function fetchBorrowRecords() {
+            const response = await fetch('/api/borrow/records');
+            if (response.ok) {
+                const records = await response.json();
+                const recordList = document.getElementById('record-list');
+                recordList.innerHTML = '';
+                // 未归还的记录优先展示
+                const sortedRecords = records.sort((a, b) => (a.returnDate === -1 ? -1 : 1) - (b.returnDate === -1 ? -1 : 1));
+                for (const record of sortedRecords) {
+                    const recordItem = document.createElement('div');
+                    const isReturned = record.returnDate !== -1;
+                    recordItem.className = `record-item ${isReturned ? 'returned' : 'not-returned'}`;
+                    const fineAmount = record.fineAmount || 0;
+                    recordItem.innerHTML = `
+                        <h3>图书ID: ${record.bookId}</h3>
+                        <p>借出时间: ${new Date(record.borrowDate * 1000).toLocaleString()}</p>
+                        <p>应还时间: ${new Date(record.dueDate * 1000).toLocaleString()}</p>
+                        <p>归还时间: ${isReturned ? new Date(record.returnDate * 1000).toLocaleString() : '未归还'}</p>
+                        <p class="fine-amount">罚款金额: ${fineAmount}元</p>
+                    `;
+                    recordList.appendChild(recordItem);
+                }
+            } else {
+                alert('获取借阅记录失败。');
+            }
+        }
+
+        document.getElementById('fetch-records-button').addEventListener('click', fetchBorrowRecords);
+
+        window.onload = () => {
+            fetchAllBooks();
+        };
+    </script>
+</body>
+</html>

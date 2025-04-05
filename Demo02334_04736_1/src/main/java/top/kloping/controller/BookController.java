@@ -20,16 +20,26 @@ import java.util.List;
 @RestController
 @RequestMapping("/api/book")
 public class BookController {
-
     @Autowired
     private IBookService bookService;
-
     @Autowired
     private IUserService userService;
 
     @GetMapping
+    @PreAuthorize("isAuthenticated()")
     public ResponseEntity<List<Book>> getAllBooks() {
         List<Book> books = bookService.list();
+        return ResponseEntity.ok(books);
+    }
+
+    @GetMapping("/all")
+    @PreAuthorize("hasAuthority('ADMIN')")
+    public ResponseEntity<List<Book>> getAllBooksForAdmin() {
+        List<Book> books = bookService.list();
+        for (Book book : books) {
+            User publisher = userService.getById(book.getPublisherId());
+            book.setPublisherName(publisher.getUsername());
+        }
         return ResponseEntity.ok(books);
     }
 
@@ -60,11 +70,12 @@ public class BookController {
         return ResponseEntity.ok(result);
     }
 
-    @PutMapping
+    @PutMapping("/{id}")
     @PreAuthorize("hasAnyAuthority('USER', 'ADMIN')")
-    public ResponseEntity<Boolean> updateBook(@RequestBody Book book, @AuthenticationPrincipal UserDetails details) {
+    public ResponseEntity<Boolean> updateBook(@PathVariable Integer id, @RequestBody Book book, @AuthenticationPrincipal UserDetails details) {
         User user = userService.findByUsername(details.getUsername());
-        Book existingBook = bookService.getBookById(book.getId());
+        Book existingBook = bookService.getBookById(id);
+        book.setId(id);
         if (existingBook != null && (user.getRole().equals("ADMIN") || existingBook.getPublisherId().equals(user.getId()))) {
             boolean result = bookService.updateBook(book);
             return ResponseEntity.ok(result);

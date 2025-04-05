@@ -29,6 +29,12 @@ public class HomeController {
         return "borrow-records";
     }
 
+    @GetMapping("/admin")
+    @PreAuthorize("hasAuthority('ADMIN')")
+    public String showAdminPage() {
+        return "admin";
+    }
+
     @GetMapping("/")
     public String home() {
         return "redirect:/login";

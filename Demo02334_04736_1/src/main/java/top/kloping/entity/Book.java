@@ -1,5 +1,6 @@
 package top.kloping.entity;
 
+import com.baomidou.mybatisplus.annotation.TableField;
 import com.baomidou.mybatisplus.annotation.TableName;
 import com.baomidou.mybatisplus.annotation.IdType;
 import com.baomidou.mybatisplus.annotation.TableId;
@@ -25,9 +26,11 @@ public class Book implements Serializable {
 
     private String isbn;
 
+    private String category;
+
+    private Integer status;
+
     private Integer publisherId;
-
-    private Integer status; // 0: 可借阅, 1: 已借阅
-
-    private String category; // 新增类别属性
+    @TableField(exist = false)
+    private String publisherName; // 新增字段
 }
