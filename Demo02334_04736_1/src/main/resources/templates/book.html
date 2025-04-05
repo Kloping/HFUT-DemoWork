@@ -1,0 +1,130 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Book List</title>
+    <style>
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            margin: 20px;
+            color: #333;
+            background-color: #f5f5f5;
+        }
+        h1 {
+            color: #444;
+            font-size: 24px;
+            margin-bottom: 20px;
+        }
+        .book-item {
+            border: 1px solid #ddd;
+            padding: 15px;
+            margin-bottom: 10px;
+            border-radius: 4px;
+            background-color: #fff;
+            box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+        }
+        .book-item h3 {
+            margin: 0 0 10px 0;
+            font-size: 18px;
+            color: #222;
+        }
+        .book-item p {
+            margin: 5px 0;
+            font-size: 14px;
+            color: #666;
+        }
+        .book-item button {
+            background-color: #007bff;
+            color: white;
+            border: none;
+            padding: 8px 16px;
+            border-radius: 4px;
+            cursor: pointer;
+            font-size: 14px;
+        }
+        .book-item button:disabled {
+            background-color: #ccc;
+            cursor: not-allowed;
+        }
+        .manage-button {
+            background-color: #28a745;
+            color: white;
+            border: none;
+            padding: 10px 20px;
+            border-radius: 4px;
+            cursor: pointer;
+            font-size: 16px;
+            margin-bottom: 20px;
+        }
+    </style>
+</head>
+<body>
+    <h1>Book List</h1>
+    <button class="manage-button" onclick="window.location.href='/bookm'">Manage My Books</button>
+    <div id="book-list">
+        <!-- Book items will be dynamically inserted here -->
+    </div>
+
+    <script>
+        async function fetchBooks() {
+            const response = await fetch('/api/book');
+            const books = await response.json();
+            const bookList = document.getElementById('book-list');
+            bookList.innerHTML = '';
+
+            books.forEach(book => {
+                const bookItem = document.createElement('div');
+                bookItem.className = 'book-item';
+
+                const title = document.createElement('h3');
+                title.textContent = book.title;
+                bookItem.appendChild(title);
+
+                const author = document.createElement('p');
+                author.textContent = `Author: ${book.author}`;
+                bookItem.appendChild(author);
+
+                const isbn = document.createElement('p');
+                isbn.textContent = `ISBN: ${book.isbn}`;
+                bookItem.appendChild(isbn);
+
+                const status = document.createElement('p');
+                status.textContent = `Status: ${book.status === '0' ? 'Available' : 'Borrowed'}`;
+                bookItem.appendChild(status);
+
+                const cardId = document.createElement('p');
+                cardId.textContent = `Card ID: ${book.cardId || 'N/A'}`;
+                bookItem.appendChild(cardId);
+
+                const borrowButton = document.createElement('button');
+                borrowButton.textContent = 'Borrow';
+                borrowButton.disabled = book.status !== '0';
+                borrowButton.onclick = () => borrowBook(book.id);
+                bookItem.appendChild(borrowButton);
+
+                bookList.appendChild(bookItem);
+            });
+        }
+
+        async function borrowBook(bookId) {
+            const response = await fetch(`/api/book/${bookId}`, {
+                method: 'PUT',
+                headers: {
+                    'Content-Type': 'application/json'
+                },
+                body: JSON.stringify({ status: '1' })
+            });
+
+            if (response.ok) {
+                alert('Book borrowed successfully!');
+                fetchBooks();
+            } else {
+                alert('Failed to borrow book.');
+            }
+        }
+
+        window.onload = fetchBooks;
+    </script>
+</body>
+</html>
