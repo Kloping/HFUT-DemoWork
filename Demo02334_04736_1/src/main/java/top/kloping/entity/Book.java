@@ -28,4 +28,6 @@ public class Book implements Serializable {
     private Integer publisherId;
 
     private Integer status; // 0: 可借阅, 1: 已借阅
+
+    private String category; // 新增类别属性
 }

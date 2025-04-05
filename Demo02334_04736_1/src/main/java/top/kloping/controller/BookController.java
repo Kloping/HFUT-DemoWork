@@ -8,6 +8,8 @@ import org.springframework.web.bind.annotation.*;
 import top.kloping.entity.Book;
 import top.kloping.entity.User;
 import top.kloping.service.IBookService;
+import top.kloping.service.IUserService;
+import org.springframework.security.core.userdetails.UserDetails;
 
 import java.util.List;
 
@@ -21,6 +23,9 @@ public class BookController {
 
     @Autowired
     private IBookService bookService;
+
+    @Autowired
+    private IUserService userService;
 
     @GetMapping
     public ResponseEntity<List<Book>> getAllBooks() {
@@ -39,21 +44,26 @@ public class BookController {
     }
 
     @GetMapping("/my")
-    @PreAuthorize("hasAnyRole('USER', 'ADMIN')")
-    public ResponseEntity<List<Book>> getMyBooks(@AuthenticationPrincipal User user) {
+    @PreAuthorize("hasAnyAuthority('USER', 'ADMIN')")
+    public ResponseEntity<List<Book>> getMyBooks(@AuthenticationPrincipal UserDetails details) {
+        User user = userService.findByUsername(details.getUsername());
         List<Book> books = bookService.lambdaQuery().eq(Book::getPublisherId, user.getId()).list();
         return ResponseEntity.ok(books);
     }
 
     @PostMapping
-    public ResponseEntity<Boolean> saveBook(@RequestBody Book book) {
+    @PreAuthorize("hasAnyAuthority('USER', 'ADMIN')")
+    public ResponseEntity<Boolean> saveBook(@AuthenticationPrincipal UserDetails details, @RequestBody Book book) {
+        User user = userService.findByUsername(details.getUsername());
+        book.setPublisherId(user.getId());
         boolean result = bookService.saveBook(book);
         return ResponseEntity.ok(result);
     }
 
     @PutMapping
-    @PreAuthorize("hasAnyRole('USER', 'ADMIN')")
-    public ResponseEntity<Boolean> updateBook(@RequestBody Book book, @AuthenticationPrincipal User user) {
+    @PreAuthorize("hasAnyAuthority('USER', 'ADMIN')")
+    public ResponseEntity<Boolean> updateBook(@RequestBody Book book, @AuthenticationPrincipal UserDetails details) {
+        User user = userService.findByUsername(details.getUsername());
         Book existingBook = bookService.getBookById(book.getId());
         if (existingBook != null && (user.getRole().equals("ADMIN") || existingBook.getPublisherId().equals(user.getId()))) {
             boolean result = bookService.updateBook(book);
@@ -64,8 +74,9 @@ public class BookController {
     }
 
     @DeleteMapping("/{id}")
-    @PreAuthorize("hasAnyRole('USER', 'ADMIN')")
-    public ResponseEntity<Boolean> deleteBook(@PathVariable Integer id, @AuthenticationPrincipal User user) {
+    @PreAuthorize("hasAnyAuthority('USER', 'ADMIN')")
+    public ResponseEntity<Boolean> deleteBook(@PathVariable Integer id, @AuthenticationPrincipal UserDetails details) {
+        User user = userService.findByUsername(details.getUsername());
         Book existingBook = bookService.getBookById(id);
         if (existingBook != null && (user.getRole().equals("ADMIN") || existingBook.getPublisherId().equals(user.getId()))) {
             boolean result = bookService.deleteBook(id);

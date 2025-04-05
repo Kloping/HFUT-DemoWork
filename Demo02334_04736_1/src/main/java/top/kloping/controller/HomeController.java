@@ -23,6 +23,12 @@ public class HomeController {
         return "bookm";
     }
 
+    @GetMapping("/borrow-records")
+    @PreAuthorize("isAuthenticated()")
+    public String showBorrowRecordsPage() {
+        return "borrow-records";
+    }
+
     @GetMapping("/")
     public String home() {
         return "redirect:/login";

@@ -16,6 +16,7 @@ import top.kloping.service.ICardService;
 import top.kloping.service.IUserService;
 
 import java.time.Instant;
+import java.util.List;
 
 @RestController
 @RequestMapping("/api/borrow")
@@ -42,10 +43,9 @@ public class BorrowController {
         }
 
         // 检查借阅证是否被锁定
-
         Card card = cardService.getById(user.getCardId());
         if (card.getBookId() > 0) {
-            return ResponseEntity.badRequest().body("借阅证已使用,请归还图书后再次借阅");
+            return ResponseEntity.badRequest().body("请先归还图书再进行借阅");
         }
 
         BorrowRecord borrowRecord = new BorrowRecord();
@@ -71,24 +71,80 @@ public class BorrowController {
         return ResponseEntity.ok(result);
     }
 
-    @PutMapping("/return/{bookId}")
+    @PostMapping("/return/{bookId}")
     @PreAuthorize("hasAnyAuthority('USER','ADMIN')")
-    public ResponseEntity<Boolean> returnBook(@PathVariable Integer bookId, @AuthenticationPrincipal UserDetails details) {
+    public ResponseEntity<Object> returnBook(@PathVariable Integer bookId, @AuthenticationPrincipal UserDetails details) {
+        User user = userService.findByUsername(details.getUsername());
+        if (user == null) {
+            return ResponseEntity.notFound().build();
+        }
+
+        BorrowRecord borrowRecord = borrowRecordService.getByUserIdAndBookId(user.getId(), bookId);
+        if (borrowRecord == null) {
+            return ResponseEntity.notFound().build();
+        }
+
+        // 计算超期罚款
+        long currentTime = Instant.now().getEpochSecond();
+        if (currentTime > borrowRecord.getDueDate()) {
+            long overdueDays = (currentTime - borrowRecord.getDueDate()) / (24 * 60 * 60);
+            double fineAmount = overdueDays * 1.0; // 假设每天罚款1元
+            borrowRecord.setFineAmount(fineAmount);
+        } else {
+            borrowRecord.setFineAmount(0.0);
+        }
+
+        borrowRecord.setReturnDate(currentTime);
+        borrowRecordService.updateById(borrowRecord);
+
+        // 更新图书状态为可借阅
+        Book book = bookService.getBookById(bookId);
+        if (book == null) {
+            return ResponseEntity.notFound().build();
+        }
+        book.setStatus(0); // 0 表示可借阅
+        bookService.updateBook(book);
+
+        // 解锁借阅证
+        Card card = cardService.getById(user.getCardId());
+        card.setBookId(0);
+        cardService.updateById(card);
+
+        return ResponseEntity.ok(borrowRecord);
+    }
+
+    @GetMapping("/records")
+    @PreAuthorize("hasAnyAuthority('USER','ADMIN')")
+    public ResponseEntity<List<BorrowRecord>> getBorrowRecords(@AuthenticationPrincipal UserDetails details) {
+        User user = userService.findByUsername(details.getUsername());
+        if (user == null) {
+            return ResponseEntity.notFound().build();
+        }
+
+        List<BorrowRecord> borrowRecords = borrowRecordService.lambdaQuery()
+                .eq(BorrowRecord::getUserId, user.getId())
+                .list();
+
+        return ResponseEntity.ok(borrowRecords);
+    }
+
+    @PutMapping("/renew/{bookId}")
+    @PreAuthorize("hasAnyAuthority('USER','ADMIN')")
+    public ResponseEntity<String> renewBook(@PathVariable Integer bookId, @AuthenticationPrincipal UserDetails details) {
         User user = userService.findByUsername(details.getUsername());
         BorrowRecord borrowRecord = borrowRecordService.lambdaQuery()
                 .eq(BorrowRecord::getUserId, user.getId())
                 .eq(BorrowRecord::getBookId, bookId)
                 .eq(BorrowRecord::getReturnDate, -1L)
                 .one();
-        if (borrowRecord != null) {
-            bookService.lambdaUpdate().eq(Book::getId, bookId).set(Book::getStatus, 0).update();
-            cardService.lambdaUpdate().eq(Card::getUserId, user.getId()).set(Card::getBookId, 0).update();
 
-            borrowRecord.setReturnDate(Instant.now().getEpochSecond());
+        if (borrowRecord != null) {
+            // 更新借阅记录的到期时间，续借3天
+            borrowRecord.setDueDate(Instant.now().plusSeconds(3 * 24 * 60 * 60).getEpochSecond());
             boolean result = borrowRecordService.updateById(borrowRecord);
-            return ResponseEntity.ok(result);
+            return ResponseEntity.ok("借阅成功");
         } else {
-            return ResponseEntity.notFound().build();
+            return ResponseEntity.badRequest().body("不是当前用户借阅无法归还");
         }
     }
 }

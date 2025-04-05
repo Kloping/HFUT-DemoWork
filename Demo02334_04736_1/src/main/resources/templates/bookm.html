@@ -1,110 +1,188 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Manage Books</title>
     <style>
         body {
             font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
             margin: 20px;
             color: #333;
-            background-color: #fafafa;
+            background-color: #f5f5f5;
         }
+
         h1 {
             color: #444;
             font-size: 24px;
             margin-bottom: 20px;
         }
+
         .book-item {
-            border: 1px solid #e0e0e0;
+            border: 1px solid #ddd;
             padding: 15px;
             margin-bottom: 10px;
-            border-radius: 2px;
+            border-radius: 4px;
             background-color: #fff;
+            box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
         }
+
         .book-item h3 {
             margin: 0 0 10px 0;
             font-size: 18px;
             color: #222;
         }
+
         .book-item p {
             margin: 5px 0;
             font-size: 14px;
             color: #666;
         }
+
         .book-item button {
             background-color: #e53935;
             color: white;
             border: none;
             padding: 8px 16px;
-            border-radius: 2px;
+            border-radius: 4px;
             cursor: pointer;
             font-size: 14px;
         }
+
+        .book-item button:disabled {
+            background-color: #ccc; /* 禁用时按钮颜色变灰 */
+            cursor: not-allowed; /* 禁用时鼠标样式变为不可点击 */
+        }
+
+        .container {
+            display: grid;
+            grid-template-columns: 1fr 2fr;
+            gap: 20px;
+            max-width: 1200px;
+            margin: 0 auto;
+        }
+
+        .add-book-section {
+            background-color: #fff;
+            padding: 20px;
+            border-radius: 4px;
+            box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+        }
+
+        .book-list-section {
+            background-color: #fff;
+            padding: 20px;
+            border-radius: 4px;
+            box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+        }
+
         .form-group {
-            margin-bottom: 15px;
+            margin-bottom: 10px;
         }
-        .form-group label {
-            display: block;
-            margin-bottom: 5px;
-            font-size: 14px;
-            color: #666;
-        }
+
         .form-group input {
-            width: 100%;
-            padding: 8px;
-            box-sizing: border-box;
-            border: 1px solid #e0e0e0;
-            border-radius: 2px;
+            padding: 12px;
             font-size: 14px;
+            border: 1px solid #ddd;
+            border-radius: 8px;
+            width: 100%;
+            box-sizing: border-box;
+            transition: border-color 0.3s ease, box-shadow 0.3s ease;
+            background-color: #f9f9f9;
+            box-shadow: inset 0 1px 3px rgba(0, 0, 0, 0.1);
         }
+
+        .form-group input:focus {
+            border-color: #007BFF;
+            outline: none;
+            box-shadow: 0 0 8px rgba(0, 123, 255, 0.3);
+        }
+
         .form-group button {
-            background-color: #1e88e5;
+            padding: 12px 24px;
+            font-size: 16px;
+            background: linear-gradient(135deg, #007BFF, #0056b3);
             color: white;
             border: none;
-            padding: 10px 20px;
-            border-radius: 2px;
+            border-radius: 8px;
             cursor: pointer;
+            box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+            transition: background 0.3s ease, box-shadow 0.3s ease, transform 0.2s ease;
+            font-weight: bold;
+            letter-spacing: 1px;
+        }
+
+        #add-book-button {
+            padding: 12px 24px;
             font-size: 16px;
+            background: linear-gradient(135deg, #007BFF, #0056b3);
+            color: white;
+            border: none;
+            border-radius: 8px;
+            cursor: pointer;
+            box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+            transition: background 0.3s ease, box-shadow 0.3s ease, transform 0.2s ease;
+            font-weight: bold;
+            letter-spacing: 1px;
+        }
+
+        #add-book-button:hover {
+            background: linear-gradient(135deg, #0056b3, #007BFF);
+            box-shadow: 0 6px 12px rgba(0, 0, 0, 0.2);
+            transform: translateY(-2px);
+        }
+
+        #add-book-button:active {
+            background: linear-gradient(135deg, #004080, #0056b3);
+            box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+            transform: translateY(0);
         }
     </style>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>管理图书</title>
 </head>
 <body>
-    <h1>Manage Books</h1>
-    <div id="add-book">
-        <h2>Add New Book</h2>
+<br>
+<center><h1>管理图书</h1></center>
+<br>
+<div class="container">
+    <div class="add-book-section">
+        <h2>添加新书</h2>
         <form id="add-book-form">
             <div class="form-group">
-                <label for="title">Title:</label>
+                <label for="title">书名:</label>
                 <input type="text" id="title" name="title" required>
             </div>
             <div class="form-group">
-                <label for="author">Author:</label>
+                <label for="author">作者:</label>
                 <input type="text" id="author" name="author" required>
             </div>
             <div class="form-group">
                 <label for="isbn">ISBN:</label>
                 <input type="text" id="isbn" name="isbn" required>
             </div>
-            <button type="submit">Add Book</button>
+            <div class="form-group">
+                <label for="category">类别:</label>
+                <input type="text" id="category" name="category" required>
+            </div>
+            <button type="submit" id="add-book-button">添加图书</button>
         </form>
     </div>
-    <div id="my-books">
-        <h2>My Published Books</h2>
+    <div class="book-list-section">
+        <h2>我发布的图书</h2>
         <div id="book-list">
-            <!-- Book items will be dynamically inserted here -->
+            <!-- 图书条目将动态插入此处 -->
         </div>
     </div>
+</div>
 
-    <script>
-        async function fetchMyBooks() {
-            const response = await fetch('/api/book/my');
+<script>
+    async function fetchMyBooks() {
+        const response = await fetch('/api/book/my');
+        if (response.ok) {
             const books = await response.json();
             const bookList = document.getElementById('book-list');
             bookList.innerHTML = '';
 
-            books.forEach(book => {
+            for (const book of books) {
                 const bookItem = document.createElement('div');
                 bookItem.className = 'book-item';
 
@@ -113,73 +191,90 @@
                 bookItem.appendChild(title);
 
                 const author = document.createElement('p');
-                author.textContent = `Author: ${book.author}`;
+                author.textContent = `作者: ${book.author}`;
                 bookItem.appendChild(author);
 
                 const isbn = document.createElement('p');
                 isbn.textContent = `ISBN: ${book.isbn}`;
                 bookItem.appendChild(isbn);
 
+                const category = document.createElement('p');
+                category.textContent = `类别: ${book.category}`;
+                bookItem.appendChild(category);
+
                 const status = document.createElement('p');
-                status.textContent = `Status: ${book.status === '0' ? 'Available' : 'Borrowed'}`;
+                status.textContent = `状态: ${book.status === 0 ? '未被借阅' : '已被借阅'}`;
                 bookItem.appendChild(status);
 
                 const cardId = document.createElement('p');
-                cardId.textContent = `Card ID: ${book.cardId || 'N/A'}`;
+                if (book.status !== 0) {
+                    const cardResponse = await fetch(`/api/user/card/${book.id}`);
+                    const card = await cardResponse.json();
+                    cardId.textContent = `借阅证ID: ${card ? card.id : '无'}`;
+                } else {
+                    cardId.textContent = `借阅证ID: 0`;
+                }
                 bookItem.appendChild(cardId);
 
                 const deleteButton = document.createElement('button');
-                deleteButton.textContent = 'Delete';
+                deleteButton.textContent = '删除';
                 deleteButton.onclick = () => deleteBook(book.id);
+                deleteButton.disabled = (book.status !== 0); // 图书未归还时禁用删除按钮
                 bookItem.appendChild(deleteButton);
 
                 bookList.appendChild(bookItem);
-            });
-        }
-
-        async function addBook(event) {
-            event.preventDefault();
-            const formData = new FormData(event.target);
-            const bookData = {
-                title: formData.get('title'),
-                author: formData.get('author'),
-                isbn: formData.get('isbn'),
-                status: '0',
-                publisherId: 1 // 使用固定值模拟用户ID
-            };
-
-            const response = await fetch('/api/book', {
-                method: 'POST',
-                headers: {
-                    'Content-Type': 'application/json'
-                },
-                body: JSON.stringify(bookData)
-            });
-
-            if (response.ok) {
-                alert('Book added successfully!');
-                fetchMyBooks();
-                event.target.reset();
-            } else {
-                alert('Failed to add book.');
             }
+        } else {
+            alert('获取图书列表失败。');
         }
+    }
 
-        async function deleteBook(bookId) {
-            const response = await fetch(`/api/book/${bookId}`, {
-                method: 'DELETE'
-            });
+    async function addBook(event) {
+        event.preventDefault();
+        const formData = new FormData(event.target);
+        const bookData = {
+            title: formData.get('title'),
+            author: formData.get('author'),
+            isbn: formData.get('isbn'),
+            category: formData.get('category'),
+            status: '0',
+            publisherId: 1 // 使用固定值模拟用户ID
+        };
 
-            if (response.ok) {
-                alert('Book deleted successfully!');
-                fetchMyBooks();
-            } else {
-                alert('Failed to delete book.');
-            }
+        const response = await fetch('/api/book', {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json'
+            },
+            body: JSON.stringify(bookData)
+        });
+
+        if (response.ok) {
+            alert('图书添加成功！');
+            fetchMyBooks();
+            event.target.reset();
+        } else {
+            alert('添加图书失败。');
         }
+    }
 
-        document.getElementById('add-book-form').addEventListener('submit', addBook);
-        window.onload = fetchMyBooks;
-    </script>
+    async function deleteBook(bookId) {
+        const response = await fetch(`/api/book/${bookId}`, {
+            method: 'DELETE'
+        });
+
+        if (response.ok) {
+            alert('图书删除成功！');
+            fetchMyBooks();
+        } else {
+            alert('删除图书失败。');
+        }
+    }
+
+    document.getElementById('add-book-form').addEventListener('submit', addBook);
+    window.onload = () => {
+        fetchMyBooks(); // 页面加载时自动获取并展示已发布的图书列表
+    };
+</script>
 </body>
 </html>

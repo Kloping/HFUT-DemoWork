@@ -1,0 +1,88 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Borrow Records</title>
+    <style>
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            margin: 20px;
+            color: #333;
+            background-color: #f5f5f5;
+        }
+        h1 {
+            color: #444;
+            font-size: 24px;
+            margin-bottom: 20px;
+        }
+        .record-item {
+            border: 1px solid #ddd;
+            padding: 15px;
+            margin-bottom: 10px;
+            border-radius: 4px;
+            background-color: #fff;
+            box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+        }
+        .record-item.not-returned {
+            background-color: #ffebee; /* 未归还的背景色为红色 */
+        }
+        .record-item.returned {
+            background-color: #e8f5e9; /* 已归还的背景色为绿色 */
+        }
+        .record-item h3 {
+            margin: 0 0 10px 0;
+            font-size: 18px;
+            color: #222;
+        }
+        .record-item p {
+            margin: 5px 0;
+            font-size: 14px;
+            color: #666;
+        }
+        .record-item p.fine-amount {
+            font-weight: bold;
+            color: #d32f2f; /* 罚款金额的字体颜色为红色 */
+        }
+    </style>
+</head>
+<body>
+    <h1>借阅记录</h1>
+    <div id="record-list">
+        <!-- 借阅记录将动态插入此处 -->
+    </div>
+
+    <script>
+        async function fetchBorrowRecords() {
+            const response = await fetch('/api/borrow/records');
+            if (response.ok) {
+                const records = await response.json();
+                const recordList = document.getElementById('record-list');
+                recordList.innerHTML = '';
+                // 未归还的记录优先展示
+                const sortedRecords = records.sort((a, b) => (a.returnDate === -1 ? -1 : 1) - (b.returnDate === -1 ? -1 : 1));
+                for (const record of sortedRecords) {
+                    const recordItem = document.createElement('div');
+                    const isReturned = record.returnDate !== -1;
+                    recordItem.className = `record-item ${isReturned ? 'returned' : 'not-returned'}`;
+                    const fineAmount = record.fineAmount || 0;
+                    recordItem.innerHTML = `
+                        <h3>图书ID: ${record.bookId}</h3>
+                        <p>借出时间: ${new Date(record.borrowDate * 1000).toLocaleString()}</p>
+                        <p>应还时间: ${new Date(record.dueDate * 1000).toLocaleString()}</p>
+                        <p>归还时间: ${isReturned ? new Date(record.returnDate * 1000).toLocaleString() : '未归还'}</p>
+                        <p class="fine-amount">罚款金额: ${fineAmount}元</p>
+                    `;
+                    recordList.appendChild(recordItem);
+                }
+            } else {
+                alert('获取借阅记录失败。');
+            }
+        }
+
+        window.onload = () => {
+            fetchBorrowRecords();
+        };
+    </script>
+</body>
+</html>

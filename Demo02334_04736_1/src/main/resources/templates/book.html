@@ -61,10 +61,12 @@
 </head>
 <body>
     <h1>图书列表</h1>
+    <h5>TIPS: 每逾期1天，罚款1元。请按时归还图书，避免产生额外费用。</h5>
     <div id="user-card-info">
         <!-- 用户借阅证信息将动态插入此处 -->
     </div>
     <button class="manage-button" onclick="window.location.href='/bookm'">管理我的图书</button>
+    <button class="manage-button" onclick="window.location.href='/borrow-records'">查看借阅记录</button>
     <div id="book-list">
         <!-- 图书条目将动态插入此处 -->
     </div>
@@ -84,6 +86,10 @@
                 fetchBooks(); // 更新图书列表
             } else if (response.status === 404) {
                 alert('借阅图书失败：用户不存在。');
+            } else if (response.status === 400) {
+                response.json().then(data => {
+                    alert(`借阅图书失败：${data}`);
+                });
             } else {
                 alert('借阅图书失败：图书可能已被借阅。');
             }
@@ -91,7 +97,7 @@
 
         async function returnBook(bookId) {
             const response = await fetch(`/api/borrow/return/${bookId}`, {
-                method: 'PUT',
+                method: 'POST',
                 headers: {
                     'Content-Type': 'application/json'
                 }
@@ -114,22 +120,44 @@
                 const books = await response.json();
                 const bookList = document.getElementById('book-list');
                 bookList.innerHTML = '';
-                books.forEach(book => {
+                for (const book of books) {
                     const bookItem = document.createElement('div');
                     bookItem.className = 'book-item';
                     const isBorrowed = book.status === 1; // 1 表示已被借阅
+                    const userCardResponse = await fetch('/api/user/card');
+                    const userCard = await userCardResponse.json();
+                    const isBorrowedByCurrentUser = isBorrowed && userCard.bookId === book.id;
                     bookItem.innerHTML = `
                         <h3>${book.title}</h3>
                         <p>作者: ${book.author}</p>
                         <p>ISBN: ${book.isbn}</p>
+                        <p>类别: ${book.category}</p>
                         <p>状态: ${isBorrowed ? '已被借阅' : '可借阅'}</p>
                         <button onclick="borrowBook(${book.id})" ${isBorrowed ? 'disabled' : ''}>借阅</button>
-                        <button onclick="returnBook(${book.id})" ${!isBorrowed ? 'disabled' : ''}>归还</button>
+                        <button onclick="returnBook(${book.id})" ${!isBorrowedByCurrentUser ? 'disabled' : ''}>归还</button>
+                        ${isBorrowedByCurrentUser ? `<button onclick="renewBook(${book.id})">续借</button>` : ''}
                     `;
                     bookList.appendChild(bookItem);
-                });
+                }
             } else {
                 alert('获取图书列表失败。');
+            }
+        }
+
+        async function renewBook(bookId) {
+            const response = await fetch(`/api/borrow/renew/${bookId}`, {
+                method: 'PUT',
+                headers: {
+                    'Content-Type': 'application/json'
+                }
+            });
+
+            if (response.ok) {
+                alert('图书续借成功！');
+                fetchUserCardInfo(); // 更新借阅证信息
+                fetchBooks(); // 更新图书列表
+            } else {
+                alert('续借图书失败。');
             }
         }
 

@@ -46,5 +46,8 @@ public class BorrowRecord implements Serializable {
      */
     private Long returnDate;
 
-
+    /**
+     * 罚款金额
+     */
+    private Double fineAmount;
 }

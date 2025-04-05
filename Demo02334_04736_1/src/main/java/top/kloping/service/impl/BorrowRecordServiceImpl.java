@@ -6,14 +6,13 @@ import top.kloping.service.IBorrowRecordService;
 import com.baomidou.mybatisplus.extension.service.impl.ServiceImpl;
 import org.springframework.stereotype.Service;
 
-/**
- * <p>
- *  服务实现类
- * </p>
- *
- * @author kloping
- * @since 2025-04-04
- */
 @Service
 public class BorrowRecordServiceImpl extends ServiceImpl<BorrowRecordMapper, BorrowRecord> implements IBorrowRecordService {
+    @Override
+    public BorrowRecord getByUserIdAndBookId(Integer userId, Integer bookId) {
+        return lambdaQuery()
+                .eq(BorrowRecord::getUserId, userId)
+                .eq(BorrowRecord::getBookId, bookId)
+                .one();
+    }
 }

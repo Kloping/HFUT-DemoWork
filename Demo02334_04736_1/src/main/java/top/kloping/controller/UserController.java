@@ -6,6 +6,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.web.bind.annotation.GetMapping;
+import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 import top.kloping.entity.User;
@@ -28,6 +29,13 @@ public class UserController {
     public ResponseEntity<Card> getMyCardId(@AuthenticationPrincipal UserDetails details) {
         User currentUser = userService.findByUsername(details.getUsername());
         Card card = cardService.getById(currentUser.getCardId());
+        return ResponseEntity.ok(card);
+    }
+
+    @GetMapping("/card/{bookId}")
+    @PreAuthorize("hasAnyAuthority('USER','ADMIN')")
+    public ResponseEntity<Card> getCardByBookId(@PathVariable Integer bookId) {
+        Card card = cardService.lambdaQuery().eq(Card::getBookId, bookId).one();
         return ResponseEntity.ok(card);
     }
 }
