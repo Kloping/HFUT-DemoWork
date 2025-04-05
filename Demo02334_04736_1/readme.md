@@ -13,3 +13,16 @@
 5) 实现图书、借阅信息的查询统计等；
 
 要求：需给出ER图，标注实体、属性及联系；开发环境不限，交互界面友好
+
++----------------+       +----------------+       +----------------+       +----------------+
+|     User       |       |     Card       |       |     Book       |       | BorrowRecord   |
++----------------+       +----------------+       +----------------+       +----------------+
+| id (PK)        |<------| userId (FK)    |       | id (PK)        |<------| bookId (FK)    |
+| username       |       | id (PK)        |       | title          |       | id (PK)        |
+| password       |       | bookId (FK)    |------>| author         |       | userId (FK)    |
+| role           |       +----------------+       | isbn           |       | userName       |
+| cardId (FK)    |                                | category       |       | borrowDate     |
++----------------+                                | status         |       | dueDate        |
+                                                  | publisherId    |       | returnDate     |
+                                                  | publisherName  |       | fineAmount     |
+                                                  +----------------+       +----------------+

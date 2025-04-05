@@ -1,0 +1,41 @@
+erDiagram
+    USER ||--o{ CARD : "1:1"
+    USER ||--o{ BORROW_RECORD : "1:N"
+    BOOK ||--o{ BORROW_RECORD : "1:N"
+    BOOK ||--o{ CARD : "1:1"
+
+    USER {
+        int id PK
+        string username
+        string password
+        string role
+        int cardId FK
+    }
+
+    CARD {
+        int id PK
+        int userId FK
+        int bookId FK
+    }
+
+    BOOK {
+        int id PK
+        string title
+        string author
+        string isbn
+        string category
+        string status
+        int publisherId
+        string publisherName
+    }
+
+    BORROW_RECORD {
+        int id PK
+        int bookId FK
+        int userId FK
+        string userName
+        date borrowDate
+        date dueDate
+        date returnDate
+        decimal fineAmount
+    }
