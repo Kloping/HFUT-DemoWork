@@ -28,6 +28,7 @@ public class UserServiceImpl extends ServiceImpl<UserMapper, User> implements IU
         if (findByUsername(user.getUsername()) != null) {
             throw new RuntimeException("Username already exists");
         }
+        user.setRole("USER");
         if (save(user)) {
             Card card = new Card();
             card.setUserId(user.getId());

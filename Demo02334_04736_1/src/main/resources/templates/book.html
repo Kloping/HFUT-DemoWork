@@ -60,71 +60,95 @@
     </style>
 </head>
 <body>
-    <h1>Book List</h1>
-    <button class="manage-button" onclick="window.location.href='/bookm'">Manage My Books</button>
+    <h1>图书列表</h1>
+    <div id="user-card-info">
+        <!-- 用户借阅证信息将动态插入此处 -->
+    </div>
+    <button class="manage-button" onclick="window.location.href='/bookm'">管理我的图书</button>
     <div id="book-list">
-        <!-- Book items will be dynamically inserted here -->
+        <!-- 图书条目将动态插入此处 -->
     </div>
 
     <script>
-        async function fetchBooks() {
-            const response = await fetch('/api/book');
-            const books = await response.json();
-            const bookList = document.getElementById('book-list');
-            bookList.innerHTML = '';
-
-            books.forEach(book => {
-                const bookItem = document.createElement('div');
-                bookItem.className = 'book-item';
-
-                const title = document.createElement('h3');
-                title.textContent = book.title;
-                bookItem.appendChild(title);
-
-                const author = document.createElement('p');
-                author.textContent = `Author: ${book.author}`;
-                bookItem.appendChild(author);
-
-                const isbn = document.createElement('p');
-                isbn.textContent = `ISBN: ${book.isbn}`;
-                bookItem.appendChild(isbn);
-
-                const status = document.createElement('p');
-                status.textContent = `Status: ${book.status === '0' ? 'Available' : 'Borrowed'}`;
-                bookItem.appendChild(status);
-
-                const cardId = document.createElement('p');
-                cardId.textContent = `Card ID: ${book.cardId || 'N/A'}`;
-                bookItem.appendChild(cardId);
-
-                const borrowButton = document.createElement('button');
-                borrowButton.textContent = 'Borrow';
-                borrowButton.disabled = book.status !== '0';
-                borrowButton.onclick = () => borrowBook(book.id);
-                bookItem.appendChild(borrowButton);
-
-                bookList.appendChild(bookItem);
-            });
-        }
-
         async function borrowBook(bookId) {
-            const response = await fetch(`/api/book/${bookId}`, {
-                method: 'PUT',
+            const response = await fetch(`/api/borrow/${bookId}`, {
+                method: 'POST',
                 headers: {
                     'Content-Type': 'application/json'
-                },
-                body: JSON.stringify({ status: '1' })
+                }
             });
 
             if (response.ok) {
-                alert('Book borrowed successfully!');
-                fetchBooks();
+                alert('图书借阅成功！');
+                fetchUserCardInfo(); // 更新借阅证信息
+                fetchBooks(); // 更新图书列表
+            } else if (response.status === 404) {
+                alert('借阅图书失败：用户不存在。');
             } else {
-                alert('Failed to borrow book.');
+                alert('借阅图书失败：图书可能已被借阅。');
             }
         }
 
-        window.onload = fetchBooks;
+        async function returnBook(bookId) {
+            const response = await fetch(`/api/borrow/return/${bookId}`, {
+                method: 'PUT',
+                headers: {
+                    'Content-Type': 'application/json'
+                }
+            });
+
+            if (response.ok) {
+                alert('图书归还成功！');
+                fetchUserCardInfo(); // 更新借阅证信息
+                fetchBooks(); // 更新图书列表
+            } else if (response.status === 404) {
+                alert('归还图书失败：用户不存在。');
+            } else {
+                alert('归还图书失败：图书可能未被借阅。');
+            }
+        }
+
+        async function fetchBooks() {
+            const response = await fetch('/api/book');
+            if (response.ok) {
+                const books = await response.json();
+                const bookList = document.getElementById('book-list');
+                bookList.innerHTML = '';
+                books.forEach(book => {
+                    const bookItem = document.createElement('div');
+                    bookItem.className = 'book-item';
+                    const isBorrowed = book.status === 1; // 1 表示已被借阅
+                    bookItem.innerHTML = `
+                        <h3>${book.title}</h3>
+                        <p>作者: ${book.author}</p>
+                        <p>ISBN: ${book.isbn}</p>
+                        <p>状态: ${isBorrowed ? '已被借阅' : '可借阅'}</p>
+                        <button onclick="borrowBook(${book.id})" ${isBorrowed ? 'disabled' : ''}>借阅</button>
+                        <button onclick="returnBook(${book.id})" ${!isBorrowed ? 'disabled' : ''}>归还</button>
+                    `;
+                    bookList.appendChild(bookItem);
+                });
+            } else {
+                alert('获取图书列表失败。');
+            }
+        }
+
+        async function fetchUserCardInfo() {
+            const response = await fetch('/api/user/card');
+            if (response.ok) {
+                const card = await response.json();
+                const userCardInfo = document.getElementById('user-card-info');
+                const status = card.bookId === 0 ? '未借阅' : '已借阅不可再用';
+                userCardInfo.innerHTML = `<p>您的借阅证ID: ${card.id}</p> <p>借阅证状态: ${status}</p> <p>借阅的图书ID: ${card.bookId}</p>`;
+            } else {
+                alert('获取借阅证信息失败。');
+            }
+        }
+
+        window.onload = () => {
+            fetchUserCardInfo();
+            fetchBooks();
+        };
     </script>
 </body>
 </html>

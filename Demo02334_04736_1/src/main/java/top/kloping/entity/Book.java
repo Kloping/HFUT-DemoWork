@@ -8,14 +8,6 @@ import lombok.Data;
 import lombok.EqualsAndHashCode;
 import lombok.experimental.Accessors;
 
-/**
- * <p>
- * 
- * </p>
- *
- * @author kloping
- * @since 2025-03-28
- */
 @Data
 @EqualsAndHashCode(callSuper = false)
 @Accessors(chain = true)
@@ -30,16 +22,10 @@ public class Book implements Serializable {
     private String title;
 
     private String author;
-    /**
-     * 出版社
-     */
+
     private String isbn;
-    /**
-     * 图书状态  0 默认 1 已被删除
-     */
-    private String status;
-    /**
-     * 发布者ID
-     */
+
     private Integer publisherId;
+
+    private Integer status; // 0: 可借阅, 1: 已借阅
 }

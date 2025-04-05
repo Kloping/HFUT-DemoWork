@@ -16,5 +16,4 @@ import org.springframework.stereotype.Service;
  */
 @Service
 public class BorrowRecordServiceImpl extends ServiceImpl<BorrowRecordMapper, BorrowRecord> implements IBorrowRecordService {
-
 }

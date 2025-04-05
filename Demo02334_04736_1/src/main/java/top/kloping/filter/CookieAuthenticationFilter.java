@@ -27,17 +27,22 @@ public class CookieAuthenticationFilter extends GenericFilterBean {
     public void doFilter(ServletRequest request, ServletResponse response, FilterChain chain) throws IOException, ServletException {
         HttpServletRequest httpRequest = (HttpServletRequest) request;
         String token = null;
-        for (Cookie cookie : httpRequest.getCookies()) {
-            if (cookie.getName().equals("authorization")) {
-                token = cookie.getValue();
-                break;
+        Cookie[] cookies = httpRequest.getCookies();
+        if (cookies != null && cookies.length > 0) {
+            for (Cookie cookie : cookies) {
+                if (cookie.getName().equals("authorization")) {
+                    token = cookie.getValue();
+                    break;
+                }
             }
         }
         if (token != null) {
             UserDetails userDetails = tokenManager.get(token);
             if (userDetails != null) {
                 // 使用TokenManager验证token并获取用户信息
-                Authentication authentication = new UsernamePasswordAuthenticationToken(userDetails, null, userDetails.getAuthorities());
+                Authentication authentication =
+                        new UsernamePasswordAuthenticationToken(userDetails,
+                                null, userDetails.getAuthorities());
                 SecurityContextHolder.getContext().setAuthentication(authentication);
             }
         }

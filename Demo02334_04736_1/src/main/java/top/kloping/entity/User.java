@@ -3,21 +3,11 @@ package top.kloping.entity;
 import com.baomidou.mybatisplus.annotation.TableName;
 import com.baomidou.mybatisplus.annotation.IdType;
 import com.baomidou.mybatisplus.annotation.TableId;
-
 import java.io.Serializable;
-
 import lombok.Data;
 import lombok.EqualsAndHashCode;
 import lombok.experimental.Accessors;
 
-/**
- * <p>
- *
- * </p>
- *
- * @author kloping
- * @since 2025-03-28
- */
 @Data
 @EqualsAndHashCode(callSuper = false)
 @Accessors(chain = true)
@@ -35,5 +25,5 @@ public class User implements Serializable {
 
     private String role;
 
-    private Integer cardId = -1;
+    private Integer cardId = -1; // -1 表示借阅证被锁定
 }
