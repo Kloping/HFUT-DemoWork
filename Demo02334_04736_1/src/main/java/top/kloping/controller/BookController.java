@@ -38,6 +38,13 @@ public class BookController {
         }
     }
 
+    @GetMapping("/my")
+    @PreAuthorize("hasAnyRole('USER', 'ADMIN')")
+    public ResponseEntity<List<Book>> getMyBooks(@AuthenticationPrincipal User user) {
+        List<Book> books = bookService.lambdaQuery().eq(Book::getPublisherId, user.getId()).list();
+        return ResponseEntity.ok(books);
+    }
+
     @PostMapping
     public ResponseEntity<Boolean> saveBook(@RequestBody Book book) {
         boolean result = bookService.saveBook(book);

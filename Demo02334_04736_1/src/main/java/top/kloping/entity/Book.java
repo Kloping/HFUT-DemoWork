@@ -38,6 +38,8 @@ public class Book implements Serializable {
      * 图书状态  0 默认 1 已被删除
      */
     private String status;
-
-    private Integer publisherId; // 添加发布者ID字段，用于关联用户
+    /**
+     * 发布者ID
+     */
+    private Integer publisherId;
 }

@@ -1,5 +1,5 @@
 <!DOCTYPE html>
-<html xmlns:th="http://www.thymeleaf.org">
+<html lang="zh" xmlns:th="http://www.thymeleaf.org">
 <head>
     <title>Register</title>
     <style>
@@ -68,7 +68,7 @@
         <h2>Register</h2>
         <!-- 添加错误提示 -->
         <div th:if="${param.error}" class="error-message" style="color: red; margin-bottom: 1rem;">
-            Username already exists. Please choose a different username.
+            用户名已存在，请选择其他用户名。
         </div>
         <form th:action="@{/register}" method="post">
             <div class="form-group">

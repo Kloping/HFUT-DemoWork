@@ -2,6 +2,7 @@ package top.kloping.controller;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.stereotype.Controller;
 import org.springframework.web.bind.annotation.GetMapping;
 
@@ -11,9 +12,15 @@ public class HomeController {
     private static final Logger logger = LoggerFactory.getLogger(HomeController.class);
 
     @GetMapping("/book")
+    @PreAuthorize("isAuthenticated()")
     public String showBookPage() {
-        logger.info("Returning view name: book");
         return "book";
+    }
+
+    @GetMapping("/bookm")
+    @PreAuthorize("isAuthenticated()")
+    public String showBookmPage() {
+        return "bookm";
     }
 
     @GetMapping("/")
